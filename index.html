@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-top">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="images/YI-logo.png" alt="Organization Logo" class="logo">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="chairman-image">
+                        <img src="images/Rishav.png" alt="Yuva Chair" class="Yuva-chair-photo">
+                    </div>
+                    <div class="chairman-name">
+                        Er. Rishav Sethi,
+                        <br>Yuva Chair,
+                        <br>CEO NITI Nagaland
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <h1>ID Card Generator</h1>
+            </div>
+        </header>
+
+        <!-- Registration Form -->
+        <div class="form-container" id="formContainer">
+            <form id="registrationForm">
+                <div class="form-group">
+                    <div class="upload-label"><i class="fas fa-camera"></i> Upload Photo</div>
+                    <input type="file" id="photo" accept="image/*" hidden >
+                    <div class="photo-preview" id="photoPreview"></div>
+                    <div class="error-message" id="photoError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="name" placeholder="Eg: John Doe" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact"><i class="fas fa-phone"></i> Contact</label>
+                        <input type="tel" id="contact" pattern="[0-9]{10}" maxlength="10" placeholder="10 digit number" title="Please enter exactly 10 digits" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="Eg: john@example.com" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="college"><i class="fas fa-university"></i> College</label>
+                        <input type="text" id="college" placeholder="Eg: Ashoka University" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="degree"><i class="fas fa-graduation-cap"></i> Degree</label>
+                        <input type="text" id="degree" placeholder="Eg: B.Tech" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="semester"><i class="fas fa-calendar-alt"></i> Semester</label>
+                    <input type="number" id="semester" min="1" max="10" placeholder="Eg: 5" required>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-id-card"></i> Generate ID Card
+                </button>
+            </form>
+        </div>
+
+        <!-- ID Card Preview -->
+        <div class="id-card-container" id="idCardContainer">
+            <div class="id-card">
+                <div class="id-header">
+                    <div class="id-logo-container">
+                        <img src="images/YI-logo.png" alt="Organization Logo" class="id-logo">
+                    </div>
+                    <h2>Yuva Member</h2>
+                </div>
+                
+                <div class="id-body">
+                    <div class="id-photo">
+                        <img id="idPhoto" src="" alt="Student Photo">
+                    </div>
+                    
+                    <div class="id-details">
+                        <p><span>Name:</span> <span id="idName"></span></p>
+                        <p><span>Contact:</span> <span id="idContact"></span></p>
+                        <p><span>Email:</span> <span id="idEmail"></span></p>
+                        <p><span>College:</span> <span id="idCollege"></span></p>
+                    </div>
+                </div>
+                
+                <div class="id-footer">
+                    <p class="organization-title"><strong>Young India</strong></p>
+                </div>
+            </div>
+            
+            <div class="download-container">
+                <button class="download-btn" onclick="downloadID()">
+                    <i class="fas fa-download"></i> Download ID
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTML2Canvas for download functionality -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

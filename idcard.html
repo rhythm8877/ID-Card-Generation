@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Card</title>
+    <link rel="stylesheet" href="idcard-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="id-card-page">
+        <!-- ID Card -->
+        <div class="id-card">
+            <div class="id-header">
+                <div class="id-logo-container">
+
+                    <img src="images/YI-logo.png" alt="Organization Logo" class="id-logo">
+                </div>
+                <h2>Student ID Card</h2>
+            </div>
+            
+            <div class="id-body">
+                <div class="id-photo">
+                    <img id="idPhoto" src="" alt="Student Photo">
+                </div>
+                
+                <div class="id-details">
+                    <p><span>Name:</span> <span id="idName"></span></p>
+                    <p><span>Contact:</span> <span id="idContact"></span></p>
+                    <p><span>Email:</span> <span id="idEmail"></span></p>
+                    <p><span>College:</span> <span id="idCollege"></span></p>
+                </div>
+            </div>
+            
+            <div class="id-footer">
+                <p class="validity">Valid Until: 2025</p>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="back-btn" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i> Back to Form
+            </button>
+            <button class="download-btn" onclick="downloadID()">
+                <i class="fas fa-download"></i> Download ID
+            </button>
+        </div>
+    </div>
+
+    <!-- HTML2Canvas for download functionality -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        // Get data from localStorage
+        window.onload = function() {
+            console.log('ID Card page loaded');
+            try {
+                const studentDataString = localStorage.getItem('studentData');
+                console.log('Retrieved data from localStorage:', studentDataString ? 'Data found' : 'No data found');
+                
+                if (!studentDataString) {
+                    alert('No student data found. Please fill the form first.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                const studentData = JSON.parse(studentDataString);
+                console.log('Parsed student data:', studentData.name);
+                
+                if (studentData) {
+                    // Set the photo
+                    document.getElementById('idPhoto').src = studentData.photo;
+                    
+                    // Set text content for all fields
+                    document.getElementById('idName').textContent = studentData.name;
+                    document.getElementById('idContact').textContent = studentData.contact;
+                    document.getElementById('idEmail').textContent = studentData.email;
+                    document.getElementById('idCollege').textContent = studentData.college;
+                    
+                    console.log('ID Card populated successfully');
+                } else {
+                    throw new Error('Student data is invalid');
+                }
+            } catch (error) {
+                console.error('Error loading student data:', error);
+                alert('Error loading student data: ' + error.message + '. Returning to form.');
+                window.location.href = 'index.html';
+            }
+        };
+
+        // Download ID card as image
+        function downloadID() {
+            console.log('Download ID button clicked');
+            html2canvas(document.querySelector('.id-card')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'student-id.png';
+                link.href = canvas.toDataURL();
+                link.click();
+                console.log('Download initiated');
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                alert('Error generating image: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
