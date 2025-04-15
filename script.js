@@ -129,6 +129,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.registrationNumber = registrationNumber;
             }
   
+            // Save data to Firebase if available
+            if (firebaseAvailable) {
+                try {
+                    console.log('Attempting to save data to Firebase...');
+                    
+                    // Create a copy of formData that we can modify
+                    const firestoreData = {
+                        ...formData,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Save photo to Firebase Storage
+                    const photoFile = photoInput.files[0];
+                    if (photoFile) {
+                        console.log('Uploading photo to Firebase Storage...');
+                        const storageRef = firebase.storage().ref();
+                        const photoRef = storageRef.child(`member-photos/${formData.registrationNumber}-${Date.now()}`);
+                        
+                        // Upload the photo
+                        const uploadTask = photoRef.put(photoFile);
+                        
+                        // Listen for upload completion
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                // Progress monitoring if needed
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                console.log('Upload progress: ' + progress + '%');
+                            },
+                            (error) => {
+                                console.error('Error uploading photo:', error);
+                                console.log('Error details:', error);
+                            },
+                            async () => {
+                                try {
+                                    // Upload completed, get download URL
+                                    console.log('Photo upload complete, getting download URL...');
+                                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                                    
+                                    // Add download URL to form data
+                                    firestoreData.photoURL = downloadURL;
+                                    
+                                    // Save form data to Firestore
+                                    console.log('Saving data to Firestore with photo URL...');
+                                    await idCardsCollection.doc(formData.registrationNumber).set(firestoreData);
+                                    console.log('Data successfully saved to Firebase with photo URL:', firestoreData);
+                                } catch (innerError) {
+                                    console.error('Error in photo upload completion handler:', innerError);
+                                    console.log('Inner error details:', innerError);
+                                }
+                            }
+                        );
+                    } else {
+                        // No photo, just save form data
+                        console.log('No photo, saving data directly to Firestore...');
+                        await idCardsCollection.doc(formData.registrationNumber).set(firestoreData);
+                        console.log('Data successfully saved to Firebase (no photo):', firestoreData);
+                    }
+                } catch (firestoreError) {
+                    console.error('Error saving to Firebase:', firestoreError);
+                    console.log('Firestore error details:', firestoreError);
+                }
+            }
+            
             // Update ID Card with registration number
             updateIDCard(formData);
             
