@@ -21,11 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
       firebaseAvailable = false;
     }
   
-    // Initialize local counter in localStorage if it doesn't exist
-    if (!localStorage.getItem('localRegistrationCounter')) {
-      localStorage.setItem('localRegistrationCounter', '0');
-    }
-  
     // Make photo preview clickable to trigger file upload
     photoPreview.addEventListener('click', () => {
         photoInput.click();
@@ -106,14 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
   
             let registrationNumber = "YUVA001"; // Default fallback
-            
-            // Function to format registration number with leading zeros
-            const formatRegNumber = (num) => {
-                // Ensure the number is between 1 and 999
-                num = Math.max(1, Math.min(999, parseInt(num)));
-                // Convert to string and pad with leading zeros to make it 3 digits
-                return "YUVA" + num.toString().padStart(3, '0');
-            };
   
             // Get next registration number if Firebase is available
             if (firebaseAvailable) {
@@ -130,19 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Firestore error:', firestoreError);
                     // Continue without Firestore
                     firebaseAvailable = false;
-                    // Use local counter as fallback
-                    const localCounter = parseInt(localStorage.getItem('localRegistrationCounter') || '0');
-                    const newCounter = localCounter + 1;
-                    localStorage.setItem('localRegistrationCounter', newCounter.toString());
-                    registrationNumber = formatRegNumber(newCounter);
+                    // Use timestamp for registration number as fallback
+                    const timestamp = Date.now();
+                    registrationNumber = `YUVA00${timestamp % 10000}`;
                     formData.registrationNumber = registrationNumber;
                 }
             } else {
-                // Use local counter for registration number
-                const localCounter = parseInt(localStorage.getItem('localRegistrationCounter') || '0');
-                const newCounter = localCounter + 1;
-                localStorage.setItem('localRegistrationCounter', newCounter.toString());
-                registrationNumber = formatRegNumber(newCounter);
+                // Use timestamp for registration number as fallback
+                const timestamp = Date.now();
+                registrationNumber = `YUVA00${timestamp % 10000}`;
                 formData.registrationNumber = registrationNumber;
             }
   
@@ -234,11 +217,4 @@ document.addEventListener('DOMContentLoaded', () => {
         link.href = canvas.toDataURL();
         link.click();
     });
-  }
-  
-  // Function to reset the registration counter
-  function resetRegistrationCounter() {
-    localStorage.setItem('localRegistrationCounter', '0');
-    alert('Registration counter has been reset. Next ID will be YUVA001');
-    console.log('Registration counter reset to 0');
   }
