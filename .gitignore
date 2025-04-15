@@ -1,5 +1,5 @@
 # Firebase configuration file with sensitive information
-firebase-config.js
+# firebase-config.js
 
 # Dependency directories
 node_modules/

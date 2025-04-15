@@ -20,11 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error checking Firebase:', error);
       firebaseAvailable = false;
     }
-    
-    // Initialize local counter in localStorage as fallback
-    if (!localStorage.getItem('registrationCounter')) {
-      localStorage.setItem('registrationCounter', '0');
-    }
   
     // Make photo preview clickable to trigger file upload
     photoPreview.addEventListener('click', () => {
@@ -102,15 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 college: document.getElementById('college').value,
                 degree: document.getElementById('degree').value,
                 semester: document.getElementById('semester').value,
-                createdAt: new Date().toISOString()
-            };
-  
-            // Function to format registration number with leading zeros
-            const formatRegNumber = (num) => {
-                // Ensure the number is between 1 and 999
-                num = Math.max(1, Math.min(999, parseInt(num)));
-                // Convert to string and pad with leading zeros to make it 3 digits
-                return "YUVA" + num.toString().padStart(3, '0');
+                createdAt: firebaseAvailable ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
             };
   
             let registrationNumber = "YUVA001"; // Default fallback
@@ -118,84 +105,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get next registration number if Firebase is available
             if (firebaseAvailable) {
                 try {
-                    console.log('Getting next registration number from Firebase...');
-                    // Use the getNextRegistrationNumber function from firebase-config.js
                     const nextNumber = await getNextRegistrationNumber();
-                    registrationNumber = formatRegNumber(nextNumber);
+                    registrationNumber = `YUVA00${nextNumber}`;
                     formData.registrationNumber = registrationNumber;
-                    console.log('Using Firebase registration number:', registrationNumber);
+                    
+                    // Save data to Firestore
+                    const db = firebase.firestore();
+                    const idCardsCollection = db.collection('idCards');
+                    const docRef = await idCardsCollection.add(formData);
+                    console.log('Document written with ID: ', docRef.id);
+                    formData.id = docRef.id;
                 } catch (firestoreError) {
                     console.error('Firestore error:', firestoreError);
                     // Continue without Firestore
                     firebaseAvailable = false;
-                    // Use local counter as fallback
-                    const localCounter = parseInt(localStorage.getItem('registrationCounter') || '0');
-                    const newCounter = localCounter + 1;
-                    localStorage.setItem('registrationCounter', newCounter.toString());
-                    registrationNumber = formatRegNumber(newCounter);
+                    // Use timestamp for registration number as fallback
+                    const timestamp = Date.now();
+                    registrationNumber = `YUVA00${timestamp % 10000}`;
                     formData.registrationNumber = registrationNumber;
-                    console.log('Using local registration number:', registrationNumber);
                 }
             } else {
-                // Use local counter for registration number
-                const localCounter = parseInt(localStorage.getItem('registrationCounter') || '0');
-                const newCounter = localCounter + 1;
-                localStorage.setItem('registrationCounter', newCounter.toString());
-                registrationNumber = formatRegNumber(newCounter);
+                // Use timestamp for registration number as fallback
+                const timestamp = Date.now();
+                registrationNumber = `YUVA00${timestamp % 10000}`;
                 formData.registrationNumber = registrationNumber;
-                console.log('Using local registration number (Firebase unavailable):', registrationNumber);
             }
   
-            // Save data to Firestore if available
-            if (firebaseAvailable) {
-                try {
-                    console.log('Saving data to Firestore...');
-                    
-                    // Create a copy of formData with timestamp
-                    const firestoreData = {
-                        ...formData,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    // Save to Firestore
-                    await idCardsCollection.doc(formData.registrationNumber).set(firestoreData);
-                    console.log('Data successfully saved to Firestore:', firestoreData);
-                } catch (firestoreError) {
-                    console.error('Error saving to Firestore:', firestoreError);
-                    console.log('Firestore error details:', firestoreError);
-                    
-                    // Fallback to localStorage
-                    try {
-                        const localData = {
-                            ...formData,
-                            createdAt: new Date().toISOString()
-                        };
-                        
-                        const savedEntries = JSON.parse(localStorage.getItem('idCardEntries') || '[]');
-                        savedEntries.push(localData);
-                        localStorage.setItem('idCardEntries', JSON.stringify(savedEntries));
-                        console.log('Data saved to localStorage as fallback:', localData);
-                    } catch (localError) {
-                        console.error('Error saving to localStorage:', localError);
-                    }
-                }
-            } else {
-                // Save to localStorage if Firebase is not available
-                try {
-                    const localData = {
-                        ...formData,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    const savedEntries = JSON.parse(localStorage.getItem('idCardEntries') || '[]');
-                    savedEntries.push(localData);
-                    localStorage.setItem('idCardEntries', JSON.stringify(savedEntries));
-                    console.log('Data saved to localStorage (Firebase unavailable):', localData);
-                } catch (error) {
-                    console.error('Error saving to localStorage:', error);
-                }
-            }
-            
             // Update ID Card with registration number
             updateIDCard(formData);
             
@@ -284,27 +219,4 @@ document.addEventListener('DOMContentLoaded', () => {
         link.href = canvas.toDataURL();
         link.click();
     });
-  }
-  
-  // Function to reset the registration counter
-  function resetRegistrationCounter() {
-    localStorage.setItem('registrationCounter', '0');
-    
-    // Also reset Firebase counter if available
-    try {
-      if (firebase && firebase.firestore) {
-        resetCounter().then(() => {
-          console.log('Firebase registration counter reset to 0');
-          alert('Registration counter has been reset. Next ID will be YUVA001');
-        }).catch(error => {
-          console.error('Error resetting Firebase counter:', error);
-          alert('Local counter reset. Firebase counter could not be reset.');
-        });
-      } else {
-        alert('Registration counter has been reset. Next ID will be YUVA001');
-      }
-    } catch (error) {
-      console.error('Error in resetRegistrationCounter:', error);
-      alert('Registration counter has been reset. Next ID will be YUVA001');
-    }
   }
